@@ -1,0 +1,1 @@
+﻿package{	import flash.display.MovieClip;	import flash.events.MouseEvent;	import flash.events.KeyboardEvent;			[SWF(width="640",height="480")]		public class Webcam extends MovieClip{				function Webcam():void{		}	}}
