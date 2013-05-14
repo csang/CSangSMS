@@ -1,30 +1,0 @@
-Amazon
-
-1. Does this application align in with the clientʼs brand? 
-	No
-1.1. If not, how will it expand brand and/or shift the companyʼs focus?	Having a video application that shows how new users can sell products in Amazon can increase the number of users.
- 2. How does this application make the client money?	With this application they can add advertisements.
-3. How does this application make the userʼs life easier?
-	They might not need to read any instructions of how to use Amazon.
-
-Cisco
-
-1. Does this application align in with the clientʼs brand?
-	No
-1.1. If not, how will it expand brand and/or shift the companyʼs focus?
-	Having a video application that shows what they sell can increase the number of users that go to their website.
-2. How does this application make the client money?
-	Increases the traffic to their website and increases the number of products sold. They can also earn more by adding advertisements in the videos.
-3. How does this application make the userʼs life easier?
-	These products might be what the users are looking for, and the video makes it easier for them to see if it is what they need.
-
-Wells Fargo
-
-1. Does this application align in with the clientʼs brand?
-	No
-1.1. If not, how will it expand brand and/or shift the companyʼs focus?
-	Having a video application showing everything they offer and how it works can increase the number of new customers.
-2. How does this application make the client money?
-	Increases the number of customers and they can earn more by adding advertisements in the videos.
-3. How does this application make the userʼs life easier?
-	Might make it easier for them to understand how Wells Fargo works.
