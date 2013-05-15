@@ -1,5 +1,10 @@
-package com.controller
+package
 {
+	import com.controller.Events;
+	
+	import fl.controls.ComboBox;
+	import fl.data.DataProvider;
+	
 	import flash.display.MovieClip;
 	import flash.display.Stage;
 	import flash.display.StageAlign;
@@ -9,6 +14,7 @@ package com.controller
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NetStatusEvent;
+	import flash.filesystem.File;
 	import flash.geom.Rectangle;
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
@@ -16,12 +22,13 @@ package com.controller
 	import flash.media.Video;
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
-		
-	[SWF(width="640",height="480")]
 	
-	public class Player extends MovieClip
+	[SWF(width="840",height="505")]
+	
+	public class sms_project_1 extends MovieClip
 	{
 		public var mc_wrapper:Wrapper = new Wrapper();
+		private var _selectedStream:String = "Test.flv";  
 		public var mc_player:VPlayer = new VPlayer();
 		public var mc_PlayPause:PlayPause = new PlayPause();
 		public var mc_volume:Volume = new Volume();
@@ -42,7 +49,11 @@ package com.controller
 		public var duration:uint = 0;
 		public var vidPaused:Boolean = false;
 		
-		public function Player()
+		private var _fileDirectory:File = File.documentsDirectory.resolvePath("/Applications/Red5/webapps/oflaDemo/streams");
+		private var _files:Array = _fileDirectory.getDirectoryListing();
+		private var _streams:Array = [];
+		
+		public function sms_project_1()
 		{
 			nc = new NetConnection();
 			nc.addEventListener(NetStatusEvent.NET_STATUS,ncNSE);
@@ -52,44 +63,36 @@ package com.controller
 			ncClient.onBWDone=onBWDone(ncClient);
 			nc.client = ncClient;
 			nc.connect(Server);
+			streamComboBoxChange();
 		}
+		
+//		private function newStreamEvent(event:Events):void
+//		{
+//			_selectedStream = event.newStream;
+//			openVideo();
+//		}
 		
 		public function ncNSE(event:NetStatusEvent):void{
 			trace("NETSTATUS[NetConnection]: "+event.info.code);
 			
 			switch(event.info.code){
 				case "NetConnection.Connect.Success":
-					ns=new NetStream(nc);
-					ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
-					ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
-					ns.play("Test.flv");
-					nsClient = new Object();
-					nsClient.onMetaData=omd;
-					nsClient.onCuePoint=ocp;
-					ns.client = nsClient;
-					video = new Video(640,480);
-					video.attachNetStream(ns);
+					openVideo();
 					addChild(mc_wrapper);
-					//mc_wrapper.mc_screen.addChild(video);
-					//addChild(video);
 					nc.call("checkBandWidth",null);
-//					addChild(mc_player);
-//					addChild(mc_PlayPause);
-//					addChild(mc_volume);
-//					addChild(mc_fullscreen);
-//					addChild(mc_sSlider);
-					mc_PlayPause.gotoAndStop(2);
-					mc_PlayPause.buttonMode = true;
-					mc_PlayPause.addEventListener(MouseEvent.CLICK, onPlayPauseClick);
-					mc_volume.mc_vSlider.mc_vKnob.buttonMode = true;
-					mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragVKnob);
-					mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_UP, releaseVKnob);
-					mc_volume.mc_vSlider.mc_vKnob.addEventListener(Event.ENTER_FRAME, adjustVolume);
-					mc_volume.mc_vSlider.mc_vKnob.x = myVSliderLength;
-					mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragSKnob);
-					mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_UP, releaseSKnob);
-					mc_sSlider.mc_sKnob.addEventListener(Event.ENTER_FRAME, seeker);
-					mc_fullscreen.addEventListener(MouseEvent.CLICK, FullScreen);
+					mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
+					mc_wrapper.mc_player.mc_PlayPause.buttonMode = true;
+					mc_wrapper.mc_player.mc_PlayPause.addEventListener(MouseEvent.CLICK, onPlayPauseClick);
+					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.buttonMode = true;
+					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragVKnob);
+					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_UP, releaseVKnob);
+					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(Event.ENTER_FRAME, adjustVolume);
+					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x = myVSliderLength;
+					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragSKnob);
+					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_UP, releaseSKnob);
+					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(Event.ENTER_FRAME, seeker);
+					mc_wrapper.mc_player.mc_fullscreen.addEventListener(MouseEvent.CLICK, FullScreen);
+					//mc_wrapper.addEventListener(Events.STREAM_CHANGE_EVENT, newStreamEvent);
 					trace("Connection successful.");
 					
 					break;
@@ -162,6 +165,50 @@ package com.controller
 			}
 		}
 		
+		private function streamComboBoxChange():void{
+			for each(var file:File in _files)
+			{
+				if(file.name.substring(file.name.length-3, file.name.length) == "flv"){
+					_streams.push(file.name);
+				}
+			}
+			var streams:ComboBox = new ComboBox();
+			streams.prompt = "Test.flv"; 
+			streams.dropdownWidth = 150; 
+			streams.width = 180;  
+			streams.x=650;
+			streams.y=200;
+			streams.dataProvider = new DataProvider(_streams); 
+			streams.addEventListener(Event.CHANGE, changeStream);
+			mc_wrapper.addChild(streams);
+			
+			function changeStream(event:Event):void
+			{
+				mc_wrapper.mc_screen.removeChild(video);
+				ns.close();
+				streams.prompt = streams.selectedItem.data;
+				var streamEvt:Events = new Events(Events.STREAM_CHANGE_EVENT);
+				streamEvt.newStream = streams.selectedItem.data;
+				_selectedStream = streamEvt.newStream;
+				openVideo();
+				//dispatchEvent(streamEvt);
+			}
+		}
+		
+		public function openVideo():void{
+			ns=new NetStream(nc);
+			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
+			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
+			ns.play(_selectedStream);
+			nsClient = new Object();
+			nsClient.onMetaData=omd;
+			nsClient.onCuePoint=ocp;
+			ns.client = nsClient;
+			video = new Video(640,480);
+			video.attachNetStream(ns);
+			mc_wrapper.mc_screen.addChild(video);
+		}
+		
 		public function onBWCheck(O:Object):Number{
 			return 0;
 		}
@@ -198,10 +245,10 @@ package com.controller
 		public function nsPauseResume(event:KeyboardEvent):void{
 			ns.togglePause();
 			if(vidPaused == false){
-				mc_PlayPause.gotoAndStop(1);
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
 				vidPaused = true;
 			}else{
-				mc_PlayPause.gotoAndStop(2);
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
 				vidPaused = false;
 			}
 			trace("Local stream paused or resumed.")
@@ -210,10 +257,10 @@ package com.controller
 		public function onPlayPauseClick(event:MouseEvent):void{
 			ns.togglePause();
 			if(vidPaused == false){
-				mc_PlayPause.gotoAndStop(1);
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
 				vidPaused = true;
 			}else{
-				mc_PlayPause.gotoAndStop(2);
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
 				vidPaused = false;
 			}
 		}
@@ -229,7 +276,7 @@ package com.controller
 		}
 		
 		public function adjustVolume(event:Event):void { 
-			var myVolume:Number=mc_volume.mc_vSlider.mc_vKnob.x/myVSliderLength; 
+			var myVolume:Number=mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x/myVSliderLength; 
 			var myTransform:SoundTransform=new SoundTransform(myVolume); 
 			if (ns!=null) { 
 				ns.soundTransform=myTransform; 
@@ -237,37 +284,33 @@ package com.controller
 		}
 		
 		public function dragVKnob(event:MouseEvent):void{
-			mc_volume.mc_vSlider.mc_vKnob.startDrag(false, vBoundingBox);
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.startDrag(false, vBoundingBox);
 			dragging=true; 
 		}
 		
 		public function releaseVKnob(event:MouseEvent):void { 
 			if(dragging){ 
-				mc_volume.mc_vSlider.mc_vKnob.stopDrag(); 
+				mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.stopDrag(); 
 				dragging=false; 
 			}   
 		}
 		
 		public function seeker(event:Event):void {
 			if(!dragging){
-				mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
+				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
 			}
-//			if(mc_sSlider.mc_sKnob.x == mySSliderLength){
-//				mc_sSlider.mc_sKnob.x = 0;
-//				ns.togglePause();
-//			}
 		}
 		
 		public function dragSKnob(event:MouseEvent):void{
 			dragging=true;
 			ns.togglePause();
-			mc_sSlider.mc_sKnob.startDrag(false, sBoundingBox);
+			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.startDrag(false, sBoundingBox);
 		}
 		
 		public function releaseSKnob(event:MouseEvent):void { 
 			if(dragging){ 
-				mc_sSlider.mc_sKnob.stopDrag();
-				ns.seek((mc_sSlider.mc_sKnob.x/mySSliderLength)*duration);
+				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.stopDrag();
+				ns.seek((mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x/mySSliderLength)*duration);
 				ns.togglePause();
 				dragging=false; 
 			}   

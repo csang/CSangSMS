@@ -7,8 +7,8 @@
 		<![CDATA[
 			import com.controller.Player;
 			import com.model.PlayerVO;
-			
-			private var player:Player = new Player();
+						
+			private var wrapper:Player = new Player();
 		]]>
 	</fx:Script>
 	
