@@ -16,25 +16,29 @@ package
 	import flash.events.NetStatusEvent;
 	import flash.filesystem.File;
 	import flash.geom.Rectangle;
+	import flash.media.Camera;
+	import flash.media.Microphone;
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import flash.media.Video;
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
+	import flash.system.Security;
+	import flash.system.SecurityPanel;
 	
 	[SWF(width="840",height="505")]
 	
 	public class sms_project_1 extends MovieClip
 	{
-		public var mc_wrapper:Wrapper = new Wrapper();
-		private var _selectedStream:String = "Test.flv";  
+		public var mc_wrapper:Wrapper = new Wrapper(); 
 		public var mc_player:VPlayer = new VPlayer();
 		public var mc_PlayPause:PlayPause = new PlayPause();
 		public var mc_volume:Volume = new Volume();
 		public var mc_fullscreen:Fullscreen = new Fullscreen();
 		public var mc_sSlider:S_Slider = new S_Slider();
 		public var mc_screen:Screen = new Screen();
+		public var mc_switch:Switch = new Switch();
 		public var nc:NetConnection;
 		public var ncClient:Object;
 		public var Server:String = "rtmp://localhost/oflaDemo/";
@@ -48,10 +52,17 @@ package
 		public var sBoundingBox:Rectangle = new Rectangle(0,0,mySSliderLength,0);
 		public var duration:uint = 0;
 		public var vidPaused:Boolean = false;
-		
+		public var onRecord:Boolean = false;
+		public var recording:Boolean = false;
+
+		private var _selectedStream:String = "Test.flv"; 
 		private var _fileDirectory:File = File.documentsDirectory.resolvePath("/Applications/Red5/webapps/oflaDemo/streams");
 		private var _files:Array = _fileDirectory.getDirectoryListing();
 		private var _streams:Array = [];
+		private var _cam:Camera = new Camera;
+		private var _cameras:Array = [];
+		private var _mic:Microphone = new Microphone;
+		private var _mics:Array = [];
 		
 		public function sms_project_1()
 		{
@@ -77,22 +88,11 @@ package
 			
 			switch(event.info.code){
 				case "NetConnection.Connect.Success":
-					openVideo();
+					openStream();
 					addChild(mc_wrapper);
 					nc.call("checkBandWidth",null);
-					mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
-					mc_wrapper.mc_player.mc_PlayPause.buttonMode = true;
-					mc_wrapper.mc_player.mc_PlayPause.addEventListener(MouseEvent.CLICK, onPlayPauseClick);
-					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.buttonMode = true;
-					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragVKnob);
-					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_UP, releaseVKnob);
-					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(Event.ENTER_FRAME, adjustVolume);
-					mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x = myVSliderLength;
-					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragSKnob);
-					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_UP, releaseSKnob);
-					mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(Event.ENTER_FRAME, seeker);
-					mc_wrapper.mc_player.mc_fullscreen.addEventListener(MouseEvent.CLICK, FullScreen);
-					//mc_wrapper.addEventListener(Events.STREAM_CHANGE_EVENT, newStreamEvent);
+					mc_wrapper.mc_switch.gotoAndStop(1);
+					addStreamEvents();
 					trace("Connection successful.");
 					
 					break;
@@ -165,49 +165,7 @@ package
 			}
 		}
 		
-		private function streamComboBoxChange():void{
-			for each(var file:File in _files)
-			{
-				if(file.name.substring(file.name.length-3, file.name.length) == "flv"){
-					_streams.push(file.name);
-				}
-			}
-			var streams:ComboBox = new ComboBox();
-			streams.prompt = "Test.flv"; 
-			streams.dropdownWidth = 150; 
-			streams.width = 180;  
-			streams.x=650;
-			streams.y=200;
-			streams.dataProvider = new DataProvider(_streams); 
-			streams.addEventListener(Event.CHANGE, changeStream);
-			mc_wrapper.addChild(streams);
-			
-			function changeStream(event:Event):void
-			{
-				mc_wrapper.mc_screen.removeChild(video);
-				ns.close();
-				streams.prompt = streams.selectedItem.data;
-				var streamEvt:Events = new Events(Events.STREAM_CHANGE_EVENT);
-				streamEvt.newStream = streams.selectedItem.data;
-				_selectedStream = streamEvt.newStream;
-				openVideo();
-				//dispatchEvent(streamEvt);
-			}
-		}
 		
-		public function openVideo():void{
-			ns=new NetStream(nc);
-			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
-			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
-			ns.play(_selectedStream);
-			nsClient = new Object();
-			nsClient.onMetaData=omd;
-			nsClient.onCuePoint=ocp;
-			ns.client = nsClient;
-			video = new Video(640,480);
-			video.attachNetStream(ns);
-			mc_wrapper.mc_screen.addChild(video);
-		}
 		
 		public function onBWCheck(O:Object):Number{
 			return 0;
@@ -242,6 +200,107 @@ package
 		trace("Resume");
 		}*/
 		
+		private function streamComboBoxChange():void{
+			for each(var file:File in _files)
+			{
+				if(file.name.substring(file.name.length-3, file.name.length) == "flv"){
+					_streams.push(file.name);
+				}
+			}
+			var streams:ComboBox = new ComboBox();
+			streams.prompt = "Test.flv"; 
+			streams.dropdownWidth = 150; 
+			streams.width = 180;  
+			streams.x=650;
+			streams.y=200;
+			streams.dataProvider = new DataProvider(_streams); 
+			streams.addEventListener(Event.CHANGE, changeStream);
+			mc_wrapper.addChild(streams);
+			
+			function changeStream(event:Event):void
+			{
+				mc_wrapper.mc_screen.removeChild(video);
+				ns.close();
+				streams.prompt = streams.selectedItem.data;
+				var streamEvt:Events = new Events(Events.STREAM_CHANGE_EVENT);
+				streamEvt.newStream = streams.selectedItem.data;
+				_selectedStream = streamEvt.newStream;
+				openStream();
+				//dispatchEvent(streamEvt);
+			}
+		}
+		
+		private function cameraList():void{
+			_cam = Camera.getCamera();
+			_cameras.push(Camera.names);
+			trace(_cameras);
+		}
+		
+		private function micList():void{
+			_mic = Microphone.getMicrophone();
+			_mics.push(Microphone.names);
+			trace(_mics);
+		}
+		
+		public function openStream():void{
+			ns=new NetStream(nc);
+			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
+			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
+			ns.play(_selectedStream);
+			nsClient = new Object();
+			nsClient.onMetaData=omd;
+			nsClient.onCuePoint=ocp;
+			ns.client = nsClient;
+			video = new Video(640,480);
+			video.attachNetStream(ns);
+			mc_wrapper.mc_screen.addChild(video);
+		}
+		
+		public function openRecording():void{
+			Security.showSettings(SecurityPanel.CAMERA);
+			cameraList();
+			Security.showSettings(SecurityPanel.MICROPHONE);
+			micList();
+			ns=new NetStream(nc);
+			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
+			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
+			nsClient = new Object();
+			nsClient.onMetaData=omd;
+			nsClient.onCuePoint=ocp;
+			ns.client = nsClient;
+			video = new Video(640,480);
+			if(_cam != null){
+				video.attachCamera(_cam);
+				ns.attachCamera(_cam);
+			}
+			if(_mic != null){
+				ns.attachAudio(_mic);
+			}
+			mc_wrapper.mc_screen.addChild(video);
+		}
+		
+		public function addStreamEvents():void{
+			mc_wrapper.mc_player.gotoAndStop(1);
+			mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
+			mc_wrapper.mc_player.mc_PlayPause.buttonMode = true;
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.buttonMode = true;
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x = myVSliderLength;
+			mc_wrapper.mc_player.mc_PlayPause.addEventListener(MouseEvent.CLICK, onPlayPauseClick);
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragVKnob);
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(MouseEvent.MOUSE_UP, releaseVKnob);
+			mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.addEventListener(Event.ENTER_FRAME, adjustVolume);
+			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_DOWN, dragSKnob);
+			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(MouseEvent.MOUSE_UP, releaseSKnob);
+			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.addEventListener(Event.ENTER_FRAME, seeker);
+			mc_wrapper.mc_player.mc_fullscreen.addEventListener(MouseEvent.CLICK, FullScreen);
+			mc_wrapper.mc_switch.addEventListener(MouseEvent.CLICK, onSwitch);
+		}
+		
+		public function addRecordingEvents():void{
+			mc_wrapper.mc_player.mc_record.buttonMode = true;
+			mc_wrapper.mc_player.mc_record.addEventListener(MouseEvent.CLICK, onRecordClick);
+		}
+		
 		public function nsPauseResume(event:KeyboardEvent):void{
 			ns.togglePause();
 			if(vidPaused == false){
@@ -265,6 +324,17 @@ package
 			}
 		}
 		
+		public function onRecordClick(event:MouseEvent):void{
+			if(recording){
+				recording = false;
+				mc_wrapper.mc_player.mc_record.gotoAndStop(1);
+			}else{
+				recording = true;
+				mc_wrapper.mc_player.mc_record.gotoAndStop(2);
+				ns.publish("test", "record");	
+			}
+		}
+		
 		public function FullScreen(event:MouseEvent):void{
 			if(stage.displayState == StageDisplayState.NORMAL){
 				stage.displayState = StageDisplayState.FULL_SCREEN;
@@ -275,12 +345,36 @@ package
 			}
 		}
 		
-		public function adjustVolume(event:Event):void { 
-			var myVolume:Number=mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x/myVSliderLength; 
-			var myTransform:SoundTransform=new SoundTransform(myVolume); 
-			if (ns!=null) { 
-				ns.soundTransform=myTransform; 
-			}    
+		public function onSwitch(event:MouseEvent):void{
+			if(onRecord){
+				onRecord = false;
+				ns.close();
+				mc_wrapper.mc_switch.gotoAndStop(1);
+				mc_wrapper.mc_player.gotoAndStop(1);
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
+				mc_wrapper.mc_screen.removeChild(video);
+				openStream();
+				addStreamEvents();
+			}else{
+				onRecord = true;
+				ns.close();
+				mc_wrapper.mc_switch.gotoAndStop(2);
+				mc_wrapper.mc_player.gotoAndStop(2);
+				mc_wrapper.mc_player.mc_record.gotoAndStop(1);
+				mc_wrapper.mc_screen.removeChild(video);
+				openRecording();
+				addRecordingEvents();
+			}
+		}
+		
+		public function adjustVolume(event:Event):void {
+			if(!onRecord){
+				var myVolume:Number=mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x/myVSliderLength; 
+				var myTransform:SoundTransform=new SoundTransform(myVolume); 
+				if (ns!=null) { 
+					ns.soundTransform=myTransform; 
+				}
+			}
 		}
 		
 		public function dragVKnob(event:MouseEvent):void{
@@ -296,9 +390,13 @@ package
 		}
 		
 		public function seeker(event:Event):void {
-			if(!dragging){
+			if(!dragging && !onRecord){
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
 			}
+//			if(mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x == (ns.time/duration)*mySSliderLength){
+//				ns.togglePause();
+//				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = 0;
+//			}
 		}
 		
 		public function dragSKnob(event:MouseEvent):void{
