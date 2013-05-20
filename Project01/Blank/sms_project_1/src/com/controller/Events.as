@@ -18,6 +18,8 @@ package com.controller
 		public static const MIC_EVENT:String = "mic_event";
 		public var seekPosition:Number;
 		public var newStream:String;
+		public var newCam:String;
+		public var newMic:String;
 		public var volume:Number = 0;
 		public var selectedMic:Number = 0;
 		public var selectCam:String;

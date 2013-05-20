@@ -54,15 +54,21 @@ package
 		public var vidPaused:Boolean = false;
 		public var onRecord:Boolean = false;
 		public var recording:Boolean = false;
+		public var streams:ComboBox = new ComboBox();
+		public var cameras:ComboBox = new ComboBox();
+		public var microphones:ComboBox = new ComboBox();
 
-		private var _selectedStream:String = "Test.flv"; 
+		private var _selectedStream:String = "Test2.flv";
 		private var _fileDirectory:File = File.documentsDirectory.resolvePath("/Applications/Red5/webapps/oflaDemo/streams");
 		private var _files:Array = _fileDirectory.getDirectoryListing();
 		private var _streams:Array = [];
 		private var _cam:Camera = new Camera;
-		private var _cameras:Array = [];
+		private var _cams:Array = Camera.names;
+		private var _selectedCam:String = _cams[1];
 		private var _mic:Microphone = new Microphone;
-		private var _mics:Array = [];
+		private var _mics:Array = Microphone.names;
+		private var _selectedMicIndex:Number = 0;
+		private var _selectedMic:String = _mics[_selectedMicIndex];
 		
 		public function sms_project_1()
 		{
@@ -74,7 +80,7 @@ package
 			ncClient.onBWDone=onBWDone(ncClient);
 			nc.client = ncClient;
 			nc.connect(Server);
-			streamComboBoxChange();
+			streamList();
 		}
 		
 //		private function newStreamEvent(event:Events):void
@@ -200,24 +206,23 @@ package
 		trace("Resume");
 		}*/
 		
-		private function streamComboBoxChange():void{
+		private function streamList():void{
 			for each(var file:File in _files)
 			{
 				if(file.name.substring(file.name.length-3, file.name.length) == "flv"){
 					_streams.push(file.name);
 				}
 			}
-			var streams:ComboBox = new ComboBox();
-			streams.prompt = "Test.flv"; 
+			streams.prompt = _selectedStream; 
 			streams.dropdownWidth = 150; 
 			streams.width = 180;  
 			streams.x=650;
 			streams.y=200;
 			streams.dataProvider = new DataProvider(_streams); 
-			streams.addEventListener(Event.CHANGE, changeStream);
+			streams.addEventListener(Event.CHANGE, onStreamChange);
 			mc_wrapper.addChild(streams);
 			
-			function changeStream(event:Event):void
+			function onStreamChange(event:Event):void
 			{
 				mc_wrapper.mc_screen.removeChild(video);
 				ns.close();
@@ -226,23 +231,59 @@ package
 				streamEvt.newStream = streams.selectedItem.data;
 				_selectedStream = streamEvt.newStream;
 				openStream();
-				//dispatchEvent(streamEvt);
 			}
 		}
 		
-		private function cameraList():void{
-			_cam = Camera.getCamera();
-			_cameras.push(Camera.names);
-			trace(_cameras);
+		private function camList():void{
+			
+			cameras.prompt = _selectedCam;
+			_cam = Camera.getCamera(_selectedCam);
+			cameras.dropdownWidth = 150; 
+			cameras.width = 180;  
+			cameras.x=650;
+			cameras.y=200;
+			cameras.dataProvider = new DataProvider(_cams); 
+			cameras.addEventListener(Event.CHANGE, onCamChange);
+			mc_wrapper.addChild(cameras);
+		}
+		
+		private function onCamChange(event:Event):void
+		{
+			mc_wrapper.mc_screen.removeChild(video);
+			ns.close();
+			cameras.prompt = cameras.selectedItem.data;
+			var camEvt:Events = new Events(Events.CAMERA_EVENT);
+			camEvt.newCam = cameras.selectedItem.data;
+			_selectedCam = camEvt.newCam;
+			openRecording();
 		}
 		
 		private function micList():void{
-			_mic = Microphone.getMicrophone();
-			_mics.push(Microphone.names);
-			trace(_mics);
+			microphones.prompt = _selectedMic;
+			_mic = Microphone.getMicrophone(_selectedMicIndex);
+			microphones.dropdownWidth = 150; 
+			microphones.width = 180;  
+			microphones.x=650;
+			microphones.y=300;
+			microphones.dataProvider = new DataProvider(_mics); 
+			cameras.addEventListener(Event.CHANGE, onMicChange);
+			mc_wrapper.addChild(microphones);
+		}
+		
+		private function onMicChange(event:Event):void
+		{
+			mc_wrapper.mc_screen.removeChild(video);
+			ns.close();
+			microphones.prompt = microphones.selectedItem.data;
+			var micEvt:Events = new Events(Events.MIC_EVENT);
+			micEvt.newMic = microphones.selectedItem.data;
+			_selectedCam = micEvt.newMic;
+			_selectedMicIndex = microphones.selectedIndex;
+			openRecording();
 		}
 		
 		public function openStream():void{
+			streamList();
 			ns=new NetStream(nc);
 			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
 			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
@@ -258,7 +299,7 @@ package
 		
 		public function openRecording():void{
 			Security.showSettings(SecurityPanel.CAMERA);
-			cameraList();
+			camList();
 			Security.showSettings(SecurityPanel.MICROPHONE);
 			micList();
 			ns=new NetStream(nc);
@@ -310,12 +351,11 @@ package
 				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
 				vidPaused = false;
 			}
-			trace("Local stream paused or resumed.")
 		}
 		
 		public function onPlayPauseClick(event:MouseEvent):void{
 			ns.togglePause();
-			if(vidPaused == false){
+			if(!vidPaused){
 				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
 				vidPaused = true;
 			}else{
@@ -328,10 +368,12 @@ package
 			if(recording){
 				recording = false;
 				mc_wrapper.mc_player.mc_record.gotoAndStop(1);
+				ns.close();
+				openRecording();
 			}else{
 				recording = true;
 				mc_wrapper.mc_player.mc_record.gotoAndStop(2);
-				ns.publish("test", "record");	
+				ns.publish("test2", "record");
 			}
 		}
 		
@@ -353,6 +395,8 @@ package
 				mc_wrapper.mc_player.gotoAndStop(1);
 				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(2);
 				mc_wrapper.mc_screen.removeChild(video);
+				mc_wrapper.removeChild(cameras);
+				mc_wrapper.removeChild(microphones);
 				openStream();
 				addStreamEvents();
 			}else{
@@ -362,6 +406,7 @@ package
 				mc_wrapper.mc_player.gotoAndStop(2);
 				mc_wrapper.mc_player.mc_record.gotoAndStop(1);
 				mc_wrapper.mc_screen.removeChild(video);
+				mc_wrapper.removeChild(streams);
 				openRecording();
 				addRecordingEvents();
 			}
@@ -390,18 +435,22 @@ package
 		}
 		
 		public function seeker(event:Event):void {
-			if(!dragging && !onRecord){
+			if(!dragging && !onRecord && !vidPaused){
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
 			}
-//			if(mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x == (ns.time/duration)*mySSliderLength){
-//				ns.togglePause();
-//				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = 0;
-//			}
+			if(!onRecord && mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x > mySSliderLength){
+				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = 0;
+				ns.togglePause();
+				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
+				vidPaused = true;
+			}
 		}
 		
 		public function dragSKnob(event:MouseEvent):void{
 			dragging=true;
-			ns.togglePause();
+			if(!vidPaused){
+				ns.togglePause();
+			}
 			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.startDrag(false, sBoundingBox);
 		}
 		
@@ -409,7 +458,9 @@ package
 			if(dragging){ 
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.stopDrag();
 				ns.seek((mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x/mySSliderLength)*duration);
-				ns.togglePause();
+				if(!vidPaused){
+					ns.togglePause();
+				}
 				dragging=false; 
 			}   
 		}
