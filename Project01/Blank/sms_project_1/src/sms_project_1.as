@@ -2,7 +2,9 @@ package
 {
 	import com.controller.Events;
 	
+	import fl.controls.Button;
 	import fl.controls.ComboBox;
+	import fl.controls.TextInput;
 	import fl.data.DataProvider;
 	
 	import flash.display.MovieClip;
@@ -27,6 +29,8 @@ package
 	import flash.system.Security;
 	import flash.system.SecurityPanel;
 	
+	import org.osmf.logging.Log;
+	
 	[SWF(width="840",height="505")]
 	
 	public class sms_project_1 extends MovieClip
@@ -37,6 +41,10 @@ package
 		public var mc_volume:Volume = new Volume();
 		public var mc_fullscreen:Fullscreen = new Fullscreen();
 		public var mc_sSlider:S_Slider = new S_Slider();
+		public var mc_loginScreen:LoginScreen = new LoginScreen();
+		public var mc_username:TextInput = new TextInput();
+		public var mc_password:TextInput = new TextInput();
+		public var mc_loginButton:Button = new Button();
 		public var mc_screen:Screen = new Screen();
 		public var mc_switch:Switch = new Switch();
 		public var nc:NetConnection;
@@ -57,6 +65,7 @@ package
 		public var streams:ComboBox = new ComboBox();
 		public var cameras:ComboBox = new ComboBox();
 		public var microphones:ComboBox = new ComboBox();
+		public var username:String = new String();
 
 		private var _selectedStream:String = "Test2.flv";
 		private var _fileDirectory:File = File.documentsDirectory.resolvePath("/Applications/Red5/webapps/oflaDemo/streams");
@@ -80,7 +89,6 @@ package
 			ncClient.onBWDone=onBWDone(ncClient);
 			nc.client = ncClient;
 			nc.connect(Server);
-			streamList();
 		}
 		
 //		private function newStreamEvent(event:Events):void
@@ -94,11 +102,14 @@ package
 			
 			switch(event.info.code){
 				case "NetConnection.Connect.Success":
-					openStream();
+					
 					addChild(mc_wrapper);
+					openLogin();
+					mc_loginButton.addEventListener(MouseEvent.CLICK, onLogin);
 					nc.call("checkBandWidth",null);
+					mc_wrapper.mc_player.gotoAndStop(1);
+					mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
 					mc_wrapper.mc_switch.gotoAndStop(1);
-					addStreamEvents();
 					trace("Connection successful.");
 					
 					break;
@@ -206,6 +217,36 @@ package
 		trace("Resume");
 		}*/
 		
+		private function openLogin():void{
+			mc_username.x = 25;
+			mc_password.x = mc_username.x;
+			mc_username.y = 110;
+			mc_password.y = mc_username.y + 70;
+			mc_username.width = 250;
+			mc_password.width = mc_username.width;
+			mc_password.displayAsPassword = true;
+			mc_loginButton.width = 120;
+			mc_loginButton.height = 25;
+			mc_loginButton.label = "Submit";
+			mc_loginButton.x = 160;
+			mc_loginButton.y = 230;
+			mc_wrapper.mc_loginScreen.addChild(mc_username);
+			mc_wrapper.mc_loginScreen.addChild(mc_password);
+			mc_wrapper.mc_loginScreen.addChild(mc_loginButton);
+		}
+		
+		private function onLogin(event:MouseEvent):void{
+			if(mc_password.text == "pass"){
+				username = mc_username.text;
+				mc_wrapper.removeChildAt(5);
+				streamList();
+				openStream();
+				addStreamEvents();
+			}else{
+				
+			}
+		}
+		
 		private function streamList():void{
 			for each(var file:File in _files)
 			{
@@ -221,17 +262,17 @@ package
 			streams.dataProvider = new DataProvider(_streams); 
 			streams.addEventListener(Event.CHANGE, onStreamChange);
 			mc_wrapper.addChild(streams);
-			
-			function onStreamChange(event:Event):void
-			{
-				mc_wrapper.mc_screen.removeChild(video);
-				ns.close();
-				streams.prompt = streams.selectedItem.data;
-				var streamEvt:Events = new Events(Events.STREAM_CHANGE_EVENT);
-				streamEvt.newStream = streams.selectedItem.data;
-				_selectedStream = streamEvt.newStream;
-				openStream();
-			}
+		}
+		
+		private function onStreamChange(event:Event):void
+		{
+			mc_wrapper.mc_screen.removeChild(video);
+			ns.close();
+			streams.prompt = streams.selectedItem.data;
+			var streamEvt:Events = new Events(Events.STREAM_CHANGE_EVENT);
+			streamEvt.newStream = streams.selectedItem.data;
+			_selectedStream = streamEvt.newStream;
+			openStream();
 		}
 		
 		private function camList():void{
@@ -283,7 +324,7 @@ package
 		}
 		
 		public function openStream():void{
-			streamList();
+			mc_wrapper.addChild(streams);
 			ns=new NetStream(nc);
 			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
 			ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
@@ -298,9 +339,9 @@ package
 		}
 		
 		public function openRecording():void{
-			Security.showSettings(SecurityPanel.CAMERA);
+			//Security.showSettings(SecurityPanel.PRIVACY);
 			camList();
-			Security.showSettings(SecurityPanel.MICROPHONE);
+			//Security.showSettings(SecurityPanel.MICROPHONE);
 			micList();
 			ns=new NetStream(nc);
 			ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
@@ -373,7 +414,7 @@ package
 			}else{
 				recording = true;
 				mc_wrapper.mc_player.mc_record.gotoAndStop(2);
-				ns.publish("test2", "record");
+				ns.publish(username+"_test", "record");
 			}
 		}
 		
@@ -438,12 +479,12 @@ package
 			if(!dragging && !onRecord && !vidPaused){
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
 			}
-			if(!onRecord && mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x > mySSliderLength){
-				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = 0;
-				ns.togglePause();
-				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
-				vidPaused = true;
-			}
+//			if(!onRecord && mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x > mySSliderLength){
+//				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = 0;
+//				ns.togglePause();
+//				mc_wrapper.mc_player.mc_PlayPause.gotoAndStop(1);
+//				vidPaused = true;
+//			}
 		}
 		
 		public function dragSKnob(event:MouseEvent):void{
