@@ -408,11 +408,13 @@ package
 		public function onRecordClick(event:MouseEvent):void{
 			if(recording){
 				recording = false;
+				mc_wrapper.mc_switch.addEventListener(MouseEvent.CLICK, onSwitch);
 				mc_wrapper.mc_player.mc_record.gotoAndStop(1);
 				ns.close();
 				openRecording();
 			}else{
 				recording = true;
+				mc_wrapper.mc_switch.removeEventListener(MouseEvent.CLICK, onSwitch);
 				mc_wrapper.mc_player.mc_record.gotoAndStop(2);
 				ns.publish(username+"_test", "record");
 			}
