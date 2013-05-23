@@ -83,8 +83,8 @@ package
 				}
 				mc_qBox = new QBox();
 				//mc_qValue = new QValue();
-				mc_qBox.mc_qValue.qValue.textField = values[x].toString();
-				//mc_qBox.mc_qValue.gotoAndStop(x+1);
+				//mc_qBox.mc_qValue.qValue.textField = values[x].toString();
+				mc_qBox.mc_qValue.gotoAndStop(x+1);
 				mc_qBox.gotoAndStop(1);
 				mc_qBox.x = x*mc_qBox.width;
 				mc_qBox.y = y*mc_qBox.height;
