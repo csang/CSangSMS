@@ -6,7 +6,6 @@ package
 	import com.as3nui.nativeExtensions.air.kinect.data.User;
 	import com.as3nui.nativeExtensions.air.kinect.events.CameraImageEvent;
 	
-	//imports from flash
 	import flash.display.Bitmap;
 	import flash.display.Sprite;
 	import flash.display.StageAlign;
@@ -17,11 +16,15 @@ package
 	
 	public class Carlos_Chris_Game_Air extends Sprite
 	{
-		
+		public var questions:Array = [1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5,1,2,3,4,5];
+		public var values:Array = [100,200,300,400,500];
 		private var depthBitmap:Bitmap;
 		private var rgbBitmap:Bitmap;
 		private var device:Kinect;
 		private var skeletonContainter:Sprite;
+		private var game:Game;
+		private var qBox:QBox;
+		private var qValue:Value;
 		
 		public function Carlos_Chris_Game_Air()
 		{
@@ -59,6 +62,31 @@ package
 			}else{
 				//trigger mouse and keyboard game.
 				trace("No kinect found.");
+				onNewGame();
+			}
+		}
+		
+		protected function onNewGame():void{
+			game = new Game();
+			game.gotoAndStop(3);
+			addChild(game);
+			createQuestions();
+		}
+		
+		protected function createQuestions():void{
+			
+			for(var i:Number=0, max:Number=questions.length, x:Number=0, y:Number=0; i<max; i++){
+				if(x==5){
+					x=0;
+					y++;
+				}
+				qBox = new QBox();
+				qValue = new Value();
+				qBox.x = x*qBox.width;
+				qBox.y = y*qBox.height;
+				qBox.mc_qValue.tf_value.text = values[x];
+				addChild(qBox);
+				x++;
 			}
 		}
 		

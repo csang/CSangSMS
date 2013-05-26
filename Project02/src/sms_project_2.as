@@ -51,6 +51,7 @@ package
 			
 			switch(event.info.code){
 				case "NetConnection.Connect.Success":
+					mc_game.gotoAndStop(3);
 					addChild(mc_game);
 					createQuestions();
 					trace("Connection successful.");

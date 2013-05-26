@@ -31,6 +31,7 @@
         </excludedEntries>
       </libraryPathEntry>
       <libraryPathEntry kind="3" linkType="1" path="libs/airkinect-2-core-openni.ane" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="bin-debug/game.swc" useDefaultLinkType="false"/>
       <libraryPathEntry kind="5" linkType="2" path="libs/airkinect-2-core-openni.ane"/>
     </libraryPath>
     <sourceAttachmentPath/>
