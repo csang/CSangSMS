@@ -242,14 +242,11 @@ package
 				streamList();
 				openStream();
 				addStreamEvents();
-			}else{
-				
 			}
 		}
 		
 		private function streamList():void{
-			for each(var file:File in _files)
-			{
+			for each(var file:File in _files){
 				if(file.name.substring(file.name.length-3, file.name.length) == "flv"){
 					_streams.push(file.name);
 				}
@@ -260,12 +257,11 @@ package
 			streams.x=650;
 			streams.y=200;
 			streams.dataProvider = new DataProvider(_streams); 
-			streams.addEventListener(Event.CHANGE, onStreamChange);
 			mc_wrapper.addChild(streams);
+			streams.addEventListener(Event.CHANGE, onStreamChange);
 		}
 		
-		private function onStreamChange(event:Event):void
-		{
+		private function onStreamChange(event:Event):void{
 			mc_wrapper.mc_screen.removeChild(video);
 			ns.close();
 			streams.prompt = streams.selectedItem.data;
@@ -276,7 +272,6 @@ package
 		}
 		
 		private function camList():void{
-			
 			cameras.prompt = _selectedCam;
 			_cam = Camera.getCamera(_selectedCam);
 			cameras.dropdownWidth = 150; 
@@ -288,8 +283,7 @@ package
 			mc_wrapper.addChild(cameras);
 		}
 		
-		private function onCamChange(event:Event):void
-		{
+		private function onCamChange(event:Event):void{
 			mc_wrapper.mc_screen.removeChild(video);
 			ns.close();
 			cameras.prompt = cameras.selectedItem.data;
@@ -304,15 +298,14 @@ package
 			_mic = Microphone.getMicrophone(_selectedMicIndex);
 			microphones.dropdownWidth = 150; 
 			microphones.width = 180;  
-			microphones.x=650;
-			microphones.y=300;
+			microphones.x = 650;
+			microphones.y = 300;
 			microphones.dataProvider = new DataProvider(_mics); 
 			cameras.addEventListener(Event.CHANGE, onMicChange);
 			mc_wrapper.addChild(microphones);
 		}
 		
-		private function onMicChange(event:Event):void
-		{
+		private function onMicChange(event:Event):void{
 			mc_wrapper.mc_screen.removeChild(video);
 			ns.close();
 			microphones.prompt = microphones.selectedItem.data;
@@ -455,7 +448,7 @@ package
 			}
 		}
 		
-		public function adjustVolume(event:Event):void {
+		public function adjustVolume(event:Event):void{
 			if(!onRecord){
 				var myVolume:Number=mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.x/myVSliderLength; 
 				var myTransform:SoundTransform=new SoundTransform(myVolume); 
@@ -470,14 +463,14 @@ package
 			dragging=true; 
 		}
 		
-		public function releaseVKnob(event:MouseEvent):void { 
+		public function releaseVKnob(event:MouseEvent):void{ 
 			if(dragging){ 
 				mc_wrapper.mc_player.mc_volume.mc_vSlider.mc_vKnob.stopDrag(); 
 				dragging=false; 
 			}   
 		}
 		
-		public function seeker(event:Event):void {
+		public function seeker(event:Event):void{
 			if(!dragging && !onRecord && !vidPaused){
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x = (ns.time/duration)*mySSliderLength;
 			}
@@ -497,7 +490,7 @@ package
 			mc_wrapper.mc_player.mc_sSlider.mc_sKnob.startDrag(false, sBoundingBox);
 		}
 		
-		public function releaseSKnob(event:MouseEvent):void { 
+		public function releaseSKnob(event:MouseEvent):void{ 
 			if(dragging){ 
 				mc_wrapper.mc_player.mc_sSlider.mc_sKnob.stopDrag();
 				ns.seek((mc_wrapper.mc_player.mc_sSlider.mc_sKnob.x/mySSliderLength)*duration);
