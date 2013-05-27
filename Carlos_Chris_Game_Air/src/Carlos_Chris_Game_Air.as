@@ -17,12 +17,12 @@ package
 	
 	public class Carlos_Chris_Game_Air extends Sprite
 	{
-		public var questions:Array = ["Is not flash 0","Who?1","2","3","4",
+		public var questions:Array = ["Is not flash 0","Who?1","2"/*,"3","4",
 										"5","6","7","8","9",
 										"10","11","12","13","14",
 										"15","16","17","18","19",
-										"20","21","22","23","24"];
-		public var answers:Array = [["Web Socket1","PHP0","CF0","JAVA0"],["a1","b0","c0","d0"],["a0","b0","c1","d0"],["a","b","c","d"],["a","b","c","d"],
+										"20","21","22","23","24"*/];
+		public var answers:Array = [["Web Socket1","PHP0","CF0","JAVA0"],["a1","b0","c0","d0"],["a1","b0","c0","d0"],["a","b","c","d"],["a","b","c","d"],
 									["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],
 									["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],
 									["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],["a","b","c","d"],
@@ -31,6 +31,8 @@ package
 		public var qBoxes:Array = [];
 		public var correctAnswer:Array = [];
 		public var selectedValue:Number = 0;
+		public var answered:Number = questions.length;
+		
 		private var depthBitmap:Bitmap;
 		private var rgbBitmap:Bitmap;
 		private var device:Kinect;
@@ -99,22 +101,25 @@ package
 				qBox.x = x*qBox.width;
 				qBox.y = y*qBox.height;
 				qBox.mc_qValue.tf_value.text = values[x];
-				addChild(qBox);
+				game.addChild(qBox);
 				qBoxes.push(qBox);
-				qBoxes[i].name = questions[i];
-				qBoxes[i].addEventListener(MouseEvent.CLICK, onQuestionSelect);
+				if(qBoxes[i].name == "answerd"){
+					qBoxes[i].gotoAndStop(2);
+				}else{
+					qBoxes[i].gotoAndStop(1);
+					qBoxes[i].name = questions[i];
+					qBoxes[i].addEventListener(MouseEvent.CLICK, onQuestionSelect);
+				}
 				x++;
 			}
 		}
 		
 		protected function onQuestionSelect(event:MouseEvent):void{
-			for each(var q:QBox in qBoxes){
-				removeChild(q);
-			}
+			
 			selectedValue = event.currentTarget.mc_qValue.tf_value.text;
 			var qNum:String = event.currentTarget.name.substring(event.currentTarget.name.length-1, event.currentTarget.name.length);
 			game.gotoAndStop(4);
-			question = new Question();
+			
 			game.tf_question.text = event.currentTarget.name.substring(0,event.currentTarget.name.length-1);
 			correctAnswer.push(answers[qNum][0].substring(answers[qNum][0].length-1, answers[qNum][0].length));
 			correctAnswer.push(answers[qNum][1].substring(answers[qNum][1].length-1, answers[qNum][1].length));
@@ -124,15 +129,23 @@ package
 			game.tf_answerB.text = answers[qNum][1].substring(0,answers[qNum][1].length-1);
 			game.tf_answerC.text = answers[qNum][2].substring(0,answers[qNum][2].length-1);
 			game.tf_answerD.text = answers[qNum][3].substring(0,answers[qNum][3].length-1);
-			game.tf_answerA.addEventListener(MouseEvent.CLICK, onAnswerA)
-			game.tf_answerB.addEventListener(MouseEvent.CLICK, onAnswerB)
-			game.tf_answerC.addEventListener(MouseEvent.CLICK, onAnswerC)
-			game.tf_answerD.addEventListener(MouseEvent.CLICK, onAnswerD)
+			game.tf_answerA.addEventListener(MouseEvent.CLICK, onAnswerA);
+			game.tf_answerB.addEventListener(MouseEvent.CLICK, onAnswerB);
+			game.tf_answerC.addEventListener(MouseEvent.CLICK, onAnswerC);
+			game.tf_answerD.addEventListener(MouseEvent.CLICK, onAnswerD);
+			event.currentTarget.removeEventListener(MouseEvent.CLICK, onQuestionSelect);
+			event.currentTarget.gotoAndStop(2);
 		}
 		
 		protected function onAnswerA(event:MouseEvent):void{
 			if(correctAnswer[0] == 1){
 				trace("Correct Answer");
+				correctAnswer = [];
+				game.gotoAndStop(3);
+				answered--;
+				if(answered == 0){
+					game.gotoAndStop(5);
+				}
 			}else{
 				trace("Wrong Answer");
 			}
@@ -141,6 +154,8 @@ package
 		protected function onAnswerB(event:MouseEvent):void{
 			if(correctAnswer[1] == 1){
 				trace("Correct Answer");
+				correctAnswer = [];
+				game.gotoAndStop(3);
 			}else{
 				trace("Wrong Answer");
 			}
@@ -149,6 +164,8 @@ package
 		protected function onAnswerC(event:MouseEvent):void{
 			if(correctAnswer[2] == 1){
 				trace("Correct Answer");
+				correctAnswer = [];
+				game.gotoAndStop(3);
 			}else{
 				trace("Wrong Answer");
 			}
@@ -157,6 +174,8 @@ package
 		protected function onAnswerD(event:MouseEvent):void{
 			if(correctAnswer[3] == 1){
 				trace("Correct Answer");
+				correctAnswer = [];
+				game.gotoAndStop(3);
 			}else{
 				trace("Wrong Answer");
 			}
