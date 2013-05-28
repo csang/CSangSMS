@@ -69,7 +69,6 @@ package
 				depthBitmap.scaleX = depthBitmap.scaleY = 1.65;
 				
 				//Creates game
-				
 				game.gotoAndStop(3);
 				stage.addChild(game);
 				createQuestions();
@@ -92,6 +91,7 @@ package
 				//trigger mouse and keyboard game.
 				trace("No kinect found.");
 				onNewGame();
+				cursor = new Cursor();
 			}
 		}
 		
@@ -122,7 +122,7 @@ package
 					qBoxes[i].gotoAndStop(1);
 					qBoxes[i].name = questions[i];
 					qBoxes[i].addEventListener(MouseEvent.CLICK, onQuestionSelect);
-					qBoxes[i].addEventListener(Event.ENTER_FRAME, onHtEnterFrame);
+					//qBoxes[i].addEventListener(Event.ENTER_FRAME, onHtEnterFrame);
 				}
 				x++;
 			}
@@ -234,34 +234,13 @@ package
 		
 		protected function onHtEnterFrame(event:Event):void
 		{
-			removeEventListener(Event.ENTER_FRAME, onHtEnterFrame);
-			if(cursor.hitTestObject(qBox)){
-				trace("hit");
-				var timer:Timer = new Timer(1500,1);
-				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimeHandler);
-				timer.start();
-				
-//				selectedValue = event.currentTarget.mc_qValue.tf_value.text;
-//				var qNum:String = event.currentTarget.name.substring(event.currentTarget.name.length-1, event.currentTarget.name.length);
-//				game.gotoAndStop(4);
-//				
-//				game.tf_question.text = event.currentTarget.name.substring(0,event.currentTarget.name.length-1);
-//				correctAnswer.push(answers[qNum][0].substring(answers[qNum][0].length-1, answers[qNum][0].length));
-//				correctAnswer.push(answers[qNum][1].substring(answers[qNum][1].length-1, answers[qNum][1].length));
-//				correctAnswer.push(answers[qNum][2].substring(answers[qNum][2].length-1, answers[qNum][2].length));
-//				correctAnswer.push(answers[qNum][3].substring(answers[qNum][3].length-1, answers[qNum][3].length));
-//				game.tf_answerA.text = answers[qNum][0].substring(0,answers[qNum][0].length-1);
-//				game.tf_answerB.text = answers[qNum][1].substring(0,answers[qNum][1].length-1);
-//				game.tf_answerC.text = answers[qNum][2].substring(0,answers[qNum][2].length-1);
-//				game.tf_answerD.text = answers[qNum][3].substring(0,answers[qNum][3].length-1);
-//				game.tf_answerA.addEventListener(MouseEvent.CLICK, onAnswerA);
-//				game.tf_answerB.addEventListener(MouseEvent.CLICK, onAnswerB);
-//				game.tf_answerC.addEventListener(MouseEvent.CLICK, onAnswerC);
-//				game.tf_answerD.addEventListener(MouseEvent.CLICK, onAnswerD);
-//				event.currentTarget.removeEventListener(MouseEvent.CLICK, onQuestionSelect);
-//				event.currentTarget.gotoAndStop(2);
-				
-			};
+//			removeEventListener(Event.ENTER_FRAME, onHtEnterFrame);
+//			if(cursor.hitTestObject(qBox)){
+//				trace("hit");
+//				var timer:Timer = new Timer(1500,1);
+//				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimeHandler);
+//				timer.start();
+//			};
 		}
 		
 		protected function onTimeHandler(event:TimerEvent):void
