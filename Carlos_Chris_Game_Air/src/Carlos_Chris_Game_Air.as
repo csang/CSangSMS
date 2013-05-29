@@ -138,29 +138,6 @@ package
 			event.currentTarget.gotoAndStop(2);
 		}
 		
-//		private function onCursorQuestionSelect():void
-//		{
-//			selectedValue = event.currentTarget.mc_qValue.tf_value.text;
-//			var qNum:String = event.currentTarget.name.substring(event.currentTarget.name.length-1, event.currentTarget.name.length);
-//			game.gotoAndStop(4);
-//			
-//			game.tf_question.text = event.currentTarget.name.substring(0,event.currentTarget.name.length-1);
-//			correctAnswer.push(answers[qNum][0].substring(answers[qNum][0].length-1, answers[qNum][0].length));
-//			correctAnswer.push(answers[qNum][1].substring(answers[qNum][1].length-1, answers[qNum][1].length));
-//			correctAnswer.push(answers[qNum][2].substring(answers[qNum][2].length-1, answers[qNum][2].length));
-//			correctAnswer.push(answers[qNum][3].substring(answers[qNum][3].length-1, answers[qNum][3].length));
-//			game.tf_answerA.text = answers[qNum][0].substring(0,answers[qNum][0].length-1);
-//			game.tf_answerB.text = answers[qNum][1].substring(0,answers[qNum][1].length-1);
-//			game.tf_answerC.text = answers[qNum][2].substring(0,answers[qNum][2].length-1);
-//			game.tf_answerD.text = answers[qNum][3].substring(0,answers[qNum][3].length-1);
-//			game.tf_answerA.addEventListener(MouseEvent.CLICK, onAnswerA);
-//			game.tf_answerB.addEventListener(MouseEvent.CLICK, onAnswerB);
-//			game.tf_answerC.addEventListener(MouseEvent.CLICK, onAnswerC);
-//			game.tf_answerD.addEventListener(MouseEvent.CLICK, onAnswerD);
-//			event.currentTarget.removeEventListener(MouseEvent.CLICK, onQuestionSelect);
-//			event.currentTarget.gotoAndStop(2);
-//		}
-		
 		protected function onAnswerA(event:MouseEvent):void{
 			if(correctAnswer[0] == 1){
 				trace("Correct Answer");
@@ -230,28 +207,6 @@ package
 				timer.addEventListener(TimerEvent.TIMER_COMPLETE, onTimeHandler);
 				timer.start();
 				
-				
-//				selectedValue = event.currentTarget.mc_qValue.tf_value.text;
-//				var qNum:String = event.currentTarget.name.substring(event.currentTarget.name.length-1, event.currentTarget.name.length);
-//				game.gotoAndStop(4);
-//				
-//				game.tf_question.text = event.currentTarget.name.substring(0,event.currentTarget.name.length-1);
-//				correctAnswer.push(answers[qNum][0].substring(answers[qNum][0].length-1, answers[qNum][0].length));
-//				correctAnswer.push(answers[qNum][1].substring(answers[qNum][1].length-1, answers[qNum][1].length));
-//				correctAnswer.push(answers[qNum][2].substring(answers[qNum][2].length-1, answers[qNum][2].length));
-//				correctAnswer.push(answers[qNum][3].substring(answers[qNum][3].length-1, answers[qNum][3].length));
-//				game.tf_answerA.text = answers[qNum][0].substring(0,answers[qNum][0].length-1);
-//				game.tf_answerB.text = answers[qNum][1].substring(0,answers[qNum][1].length-1);
-//				game.tf_answerC.text = answers[qNum][2].substring(0,answers[qNum][2].length-1);
-//				game.tf_answerD.text = answers[qNum][3].substring(0,answers[qNum][3].length-1);
-//				game.tf_answerA.addEventListener(MouseEvent.CLICK, onAnswerA);
-//				game.tf_answerB.addEventListener(MouseEvent.CLICK, onAnswerB);
-//				game.tf_answerC.addEventListener(MouseEvent.CLICK, onAnswerC);
-//				game.tf_answerD.addEventListener(MouseEvent.CLICK, onAnswerD);
-//				event.currentTarget.removeEventListener(MouseEvent.CLICK, onQuestionSelect);
-//				event.currentTarget.gotoAndStop(2);
-				
-				
 			};
 		}
 		
@@ -264,3 +219,84 @@ package
 		}
 	}
 }
+
+
+//	private var _so:SharedObject;
+//	private var _username:String;
+//	private var _password:String;
+//	
+//	
+//	
+//	private function ncSuccessHandler():void{
+//		_so = SharedObject.getRemote("chat", _nc.uri);
+//		_so.addEventListener(SyncEvent.SYNC, soHandler);
+//		_so.connect(_nc);
+//	}
+//	
+//	private function soHandler(e:SyncEvent):void{
+//		
+//		//trace(e.changeList);
+//		for each (var changed:Object in e.changeList){
+//			//trace(changed.name);
+//			if(changed.name == "users"){
+//				trace("check users");
+//				trace("the users "+_so.data['users']);
+//				usersList.dataProvider = new ArrayCollection(_so.data['users']);
+//			}
+//			
+//			
+//			if(changed.name == "messages"){
+//				trace('messages changed');
+//				trace("the messages "+_so.data['messages']);
+//				messagesList.dataProvider = new ArrayCollection(_so.data['messages']);
+//				//_messages = _so.data['messages'];
+//			}
+//			
+//		}
+//		
+//	}
+//	private function submitMessage_clickHandler(e:MouseEvent):void{
+//		
+//		_nc.call("updateSO", null, "messages", message.text);
+//		message.text = "";
+//	}
+
+
+
+// Eclipse code
+
+//	import java.util.ArrayList;
+//	import org.red5.server.adapter.ApplicationAdapter;
+//	import org.red5.server.api.IConnection;
+//	import org.red5.server.api.IScope;
+//	import org.red5.server.api.service.ServiceUtils;
+//	import org.red5.server.api.so.ISharedObject;
+//	import java.io.File;
+//	
+//	public class Application extends ApplicationAdapter {
+//		ISharedObject SO;
+//		ArrayList<String> players=new ArrayList<String>();
+//		ArrayList<String> scores=new ArrayList<String>();
+//		
+//		private void trace(String output){
+//			System.out.print(output);
+//		}
+//		
+//		public Application() {
+//			if(SO==null){
+//				createSharedObject(scope,"players",false);
+//				SO=getSharedObject(scope,"players");
+//				createSharedObject(scope,"scores",false);
+//				SO=getSharedObject(scope,"scores");
+//			}
+//		}
+//		
+//		public void UpdateSO(String prop,Object value){
+//			trace("SO works");
+//			players.add(value.toString());
+//			SO.setAttribute(prop,players);
+//			scores.add(value.toString());
+//			SO.setAttribute(prop,scores);
+//		}
+//		
+//	}

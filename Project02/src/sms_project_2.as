@@ -7,16 +7,16 @@ package
 	import flash.events.AsyncErrorEvent;
 	import flash.events.MouseEvent;
 	import flash.events.NetStatusEvent;
-	import flash.media.Video;
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
+	import flash.net.Responder;
 	
 	
 	[SWF(width="1080", height="585")]
 	
 	public class sms_project_2 extends Sprite
 	{
-		public var questions:Array = ["Is not flash 0","Who?1","2"/*,"3","4",
+		public var questions:Array = ["Is not flash 0","Who?1","2","3","4"/*,
 										"5","6","7","8","9",
 										"10","11","12","13","14",
 										"15","16","17","18","19",
@@ -50,7 +50,7 @@ package
 		public function sms_project_2()
 		{
 			_nc = new NetConnection();
-			_ns = new NetStream(_nc);
+			//_ns = new NetStream(_nc);
 			_nc.addEventListener(NetStatusEvent.NET_STATUS,ncNSE);
 			//_nc.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
 			_ncClient = new Object();
@@ -67,12 +67,12 @@ package
 				case "NetConnection.Connect.Success":
 //					_ns.publish("sample","live");
 					_ns=new NetStream(_nc);
-					_ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
-					_ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
+//					_ns.addEventListener(NetStatusEvent.NET_STATUS,nsNSE);
+//					_ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR,aee);
 					_nsClient = new Object();
-					_nsClient.onMetaData=omd;
-					_nsClient.onCuePoint=ocp;
-					_ns.client = _nsClient;
+//					_nsClient.onMetaData=omd;
+//					_nsClient.onCuePoint=ocp;
+//					_ns.client = _nsClient;
 					_ns.publish("the_game","live");
 					onNewGame();
 					trace("Connection successful.");
@@ -173,9 +173,28 @@ package
 			game = new Game();
 			cursor = new Cursor();
 			game.gotoAndStop(3);
-			game.attachNetStream(_ns);
+			//game.attachNetStream(_ns);
 			addChild(game);
 			createQuestions();
+			game.mc_send.addEventListener(MouseEvent.CLICK, onSend);
+		}
+		
+		protected function onSend(event:MouseEvent):void
+		{
+			_ns.send("getClientResponse",game.mc_chatText.text);
+			game.mc_chatText.text = "";
+			
+			var response:Responder = new Responder(getResponse);
+			_nc.call("serverMethod",response,"Something");
+		}
+		
+		public function getClientResponse(str:String):void{
+			trace("Client Received: " + str);
+		}
+		
+		private function getResponse(str:String):void{
+			trace(str);
+			game.tf_chatRoom.appendText(str);
 		}
 		
 		protected function createQuestions():void{
@@ -192,13 +211,9 @@ package
 				qBox.mc_qValue.tf_value.text = values[x];
 				game.addChild(qBox);
 				qBoxes.push(qBox);
-				if(qBoxes[i].name == "answerd"){
-					qBoxes[i].gotoAndStop(2);
-				}else{
-					qBoxes[i].gotoAndStop(1);
-					qBoxes[i].name = questions[i];
-					qBoxes[i].addEventListener(MouseEvent.CLICK, onQuestionSelect);
-				}
+				qBoxes[i].gotoAndStop(1);
+				qBoxes[i].name = questions[i];
+				qBoxes[i].addEventListener(MouseEvent.CLICK, onQuestionSelect);
 				x++;
 			}
 		}
